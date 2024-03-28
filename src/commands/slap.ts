@@ -4,8 +4,7 @@ import {buildHTMLMentionByUserId} from '../utils';
 import {BotContext} from '../types';
 
 export const slap = async (ctx: CommandContext<BotContext>) => {
-  const regExp = /@\S+/;
-  const result = regExp.exec(ctx.match);
+  const result = /@\S+/.exec(ctx.match);
 
   if (result !== null) {
     const targetUserName = result[0];
