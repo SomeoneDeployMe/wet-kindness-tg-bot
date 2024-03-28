@@ -19,12 +19,20 @@ bot.api.setMyCommands([
 ]);
 
 bot.command('start', async (ctx) => {
-  ctx.reply('Вечер в хату');
+  await ctx.reply('Вечер в хату');
 });
 
 bot.command('dota', dota);
 bot.command('slap', slap);
 bot.command('helpme', helpme);
+
+bot.hears(/(?<![а-яА-Я])(спал|заснул|окуклился)(?![а-яА-Я])/i, async (ctx) => {
+  if (ctx.message) {
+    await ctx.api.setMessageReaction(ctx.chat.id, ctx.message.message_id, [
+      {type: 'emoji', emoji: '🤡'},
+    ]);
+  }
+});
 
 bot.start({
   allowed_updates: ['chat_member', 'message'],
