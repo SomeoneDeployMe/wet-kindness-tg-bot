@@ -10,7 +10,7 @@ export const slap = async (ctx: CommandContext<BotContext>) => {
     const targetUserName = result[0];
 
     ctx.reply(
-      `${targetUserName} получает смачного леща от @${ctx.from!.username}`
+      `${targetUserName} получает смачного леща 👋 от @${ctx.from!.username}`
     );
   } else {
     const ent = ctx.message!.entities.find(
@@ -22,12 +22,12 @@ export const slap = async (ctx: CommandContext<BotContext>) => {
       const {id, first_name} = ent.user;
 
       ctx.reply(
-        `${buildHTMLMentionByUserId(id, first_name)} получает смачного леща от @${ctx.from!.username}`,
+        `${buildHTMLMentionByUserId(id, first_name)} получает смачного леща 👋 от @${ctx.from!.username}`,
         {parse_mode: 'HTML'}
       );
     } else {
       ctx.reply(
-        `Трясясь и потея в попытках найти соперника, @${ctx.from!.username} обмякает не преуспев`
+        `Трясясь и потея в попытках найти соперника, @${ctx.from!.username} обмякает не преуспев 🤡`
       );
     }
   }
