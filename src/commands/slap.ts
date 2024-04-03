@@ -3,7 +3,7 @@ import {MessageEntity} from '@grammyjs/types/message';
 import {buildHTMLMentionByUserId} from '../utils';
 import {BotContext} from '../types';
 
-export const slap = async (ctx: CommandContext<BotContext>) => {
+export async function slap(ctx: CommandContext<BotContext>) {
   const result = /@\S+/.exec(ctx.match);
 
   if (result !== null) {
@@ -31,4 +31,4 @@ export const slap = async (ctx: CommandContext<BotContext>) => {
       );
     }
   }
-};
+}

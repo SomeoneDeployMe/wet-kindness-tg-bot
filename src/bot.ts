@@ -9,6 +9,7 @@ import {
   onReadyCheckAnswer,
   readycheck,
   slap,
+  spit,
 } from './commands';
 import {BotContext} from './types';
 
@@ -24,6 +25,7 @@ bot.api.setMyCommands([
   {command: 'dota', description: 'Запросить заседание по вопросам подъёма ММР'},
   {command: 'mid', description: 'Отправить бездаря на мид'},
   {command: 'slap', description: 'Дать леща @мимокроку'},
+  {command: 'spit', description: 'Обидно харкнуть в @мимокрока'},
   {command: 'helpme', description: 'Ну и на что этот Generative AI способен?'},
 ]);
 
@@ -35,6 +37,7 @@ bot.command('readycheck', readycheck);
 bot.command('dota', dota);
 bot.command('mid', mid);
 bot.command('slap', slap);
+bot.command('spit', spit);
 bot.command('helpme', helpme);
 
 bot.hears(/(?<![а-яА-Я])(спал|заснул|окуклился)(?![а-яА-Я])/i, async (ctx) => {
