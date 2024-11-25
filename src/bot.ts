@@ -12,6 +12,7 @@ import {
   spit,
 } from './commands';
 import {BotContext} from './types';
+import {swearBack} from './swearBack';
 
 const storageAdapter = new MemorySessionStorage<ChatMember>();
 
@@ -50,6 +51,20 @@ bot.hears(/(?<![а-яА-Я])(спал|заснул|окуклился)(?![а-я�
 
 bot.on('poll_answer', onReadyCheckAnswer);
 
-bot.start({
+bot.on('message', async (ctx) => {
+  const mustReply = Math.floor(Math.random() * 5) === 4;
+
+  if (mustReply && ctx.message.text) {
+    const swear = swearBack(ctx.message.text);
+
+    if (swear) {
+      await ctx.reply(`${swear} для пидоров.`, {
+        reply_to_message_id: ctx.message.message_id,
+      });
+    }
+  }
+});
+
+void bot.start({
   allowed_updates: ['chat_member', 'message', 'poll_answer'],
 });

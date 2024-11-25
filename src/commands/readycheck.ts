@@ -64,7 +64,6 @@ export async function readycheck(ctx: CommandContext<BotContext>) {
 export async function onReadyCheckAnswer(
   ctx: Filter<BotContext, 'poll_answer'>
 ) {
-  console.log(ctx);
   if (activePoll && activePoll.pollId === ctx.update.poll_answer.poll_id) {
     const {user, option_ids} = ctx.update.poll_answer;
 

@@ -410,6 +410,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"az@npm:^0.2.3":
+  version: 0.2.3
+  resolution: "az@npm:0.2.3"
+  checksum: 10c0/1315b27be6f853ca2c23b4f19c9605ffbc28e110ad2271e40a68fa9d8e116c2a77beb948fc9e3c0bf179e0abff71bb3a3d06ca37b7fa573b24d1b49dc4d8e50e
+  languageName: node
+  linkType: hard
+
 "balanced-match@npm:^1.0.0":
   version: 1.0.2
   resolution: "balanced-match@npm:1.0.2"
@@ -2412,6 +2419,7 @@ __metadata:
   dependencies:
     "@grammyjs/chat-members": "npm:^1.1.0"
     "@types/node": "npm:^20.11.30"
+    az: "npm:^0.2.3"
     dotenv: "npm:^16.4.5"
     grammy: "npm:^1.21.2"
     nodemon: "npm:^3.1.0"
