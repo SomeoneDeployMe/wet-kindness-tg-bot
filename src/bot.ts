@@ -12,7 +12,8 @@ import {
   spit,
 } from './commands';
 import {BotContext} from './types';
-import {swearBack} from './swearBack';
+import {swearBack} from './replies';
+import {isQuestionSentence} from './utils';
 
 const storageAdapter = new MemorySessionStorage<ChatMember>();
 
@@ -55,12 +56,18 @@ bot.on('message', async (ctx) => {
   const mustReply = Math.floor(Math.random() * 5) === 4;
 
   if (mustReply && ctx.message.text) {
-    const swear = swearBack(ctx.message.text);
-
-    if (swear) {
-      await ctx.reply(`${swear} для пидоров.`, {
+    if (isQuestionSentence(ctx.message.text)) {
+      await ctx.reply('А тебя это ебать не должно.', {
         reply_to_message_id: ctx.message.message_id,
       });
+    } else {
+      const swear = swearBack(ctx.message.text);
+
+      if (swear) {
+        await ctx.reply(`${swear} для пидоров.`, {
+          reply_to_message_id: ctx.message.message_id,
+        });
+      }
     }
   }
 });
