@@ -12,8 +12,10 @@ import {
   spit,
 } from './commands';
 import {BotContext} from './types';
-import {swearBack} from './replies';
-import {isQuestionSentence} from './utils';
+import {runAgent} from './agent/agent';
+import {Message} from '@grammyjs/types/message';
+import {configStore, PromptType} from './store';
+import {supabase} from './supabase';
 
 const storageAdapter = new MemorySessionStorage<ChatMember>();
 
@@ -64,25 +66,66 @@ bot.hears(
 bot.on('poll_answer', onReadyCheckAnswer);
 
 bot.on('message', async (ctx) => {
-  const mustReply = Math.floor(Math.random() * 10) === 9;
+  if (ctx.message.text && mustBeSendToAI(ctx.message)) {
+    const response = await runAgent(ctx.message.text);
 
-  if (mustReply && ctx.message.text) {
-    if (isQuestionSentence(ctx.message.text)) {
-      await ctx.reply('А тебя это ебать не должно.', {
-        reply_to_message_id: ctx.message.message_id,
-      });
-    } else {
-      const swear = swearBack(ctx.message.text);
-
-      if (swear) {
-        await ctx.reply(`${swear} для пидоров.`, {
-          reply_to_message_id: ctx.message.message_id,
-        });
-      }
-    }
+    await ctx.reply(response, {
+      reply_to_message_id: ctx.message.message_id,
+    });
   }
 });
 
-void bot.start({
-  allowed_updates: ['chat_member', 'message', 'poll_answer'],
-});
+async function start() {
+  validateEnv();
+
+  void bot.start({
+    allowed_updates: ['chat_member', 'message', 'poll_answer'],
+  });
+
+  const response = await supabase.from('prompts').select('code,value');
+  const prompts = response.data?.map((p): [PromptType, string] => [
+    p.code as PromptType,
+    p.value,
+  ]);
+
+  if (prompts) {
+    configStore.prompts = prompts;
+  } else {
+    throw new Error('No prompts found');
+  }
+}
+
+void start();
+
+function mustBeSendToAI(message: Message) {
+  const botName = process.env.BOT_NAME;
+
+  if (!botName) {
+    return false;
+  }
+
+  return !!(
+    message.text != null &&
+    message.text.length < 500 &&
+    (message?.text.toLowerCase().startsWith('свист') ||
+      message.text?.includes(botName) ||
+      (message.reply_to_message?.from?.username === botName &&
+        message.reply_to_message?.from?.is_bot))
+  );
+}
+
+function validateEnv() {
+  [
+    'BOT_API_TOKEN',
+    'OPENAI_URL',
+    'OPENAI_API_KEY',
+    'SUPABASE_URL',
+    'SUPABASE_KEY',
+    'MODEL',
+    'BOT_NAME',
+  ].forEach((name) => {
+    if (process.env[name] == null || process.env[name] === '') {
+      throw new Error(`${name} value must be provided`);
+    }
+  });
+}
