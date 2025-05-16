@@ -1,12 +1,11 @@
 import {CommandContext} from 'grammy';
 import {BotContext} from '../types';
-import {CHAT_MEMBERS} from '../consts';
+import {runAgent} from '../agent/agent';
+import {configStore} from '../store';
 
 export async function mid(ctx: CommandContext<BotContext>) {
-  const membersCount = CHAT_MEMBERS.length;
-  const randomUser = CHAT_MEMBERS[Math.floor(Math.random() * membersCount)];
+  const midPrompt = configStore.getPromptByType('MID');
+  const response = await runAgent(midPrompt);
 
-  if (randomUser) {
-    await ctx.reply(`На миду сегодня позорится ${randomUser}`);
-  }
+  await ctx.reply(response);
 }

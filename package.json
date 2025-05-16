@@ -4,20 +4,26 @@
   "scripts": {
     "start:dev": "nodemon src/bot.ts",
     "start:prod": "yarn run tsc && yarn run pm2 start --name wetkindnessbot dist/bot.js",
-    "stop:prod": "yarn run pm2 stop wetkindnessbot"
+    "stop:prod": "yarn run pm2 stop wetkindnessbot",
+    "gen:types": "supabase gen types typescript --project-id kxxqvgyfiitbwrivtuoo > database.types.ts"
   },
   "devDependencies": {
     "@types/node": "^20.11.30",
     "nodemon": "^3.1.0",
     "pm2": "^5.3.1",
     "prettier": "^3.2.5",
+    "supabase": "2.22.12",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.3"
   },
   "dependencies": {
     "@grammyjs/chat-members": "^1.1.0",
+    "@supabase/supabase-js": "^2.49.4",
     "az": "^0.2.3",
     "dotenv": "^16.4.5",
-    "grammy": "^1.21.2"
+    "grammy": "^1.21.2",
+    "lowdb": "^7.0.1",
+    "openai": "^4.97.0",
+    "zod": "^3.24.4"
   }
 }

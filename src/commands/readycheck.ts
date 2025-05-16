@@ -2,7 +2,8 @@ import {CommandContext} from 'grammy';
 import {BotContext} from '../types';
 import {Filter} from 'grammy/out/filter';
 import {User} from 'grammy/types';
-import {CHAT_MEMBERS} from '../consts';
+import {configStore} from '../store';
+import {runAgent} from '../agent/agent';
 
 type Answer = {
   user: User;
@@ -46,10 +47,13 @@ class PollStorage {
 let activePoll: PollStorage | null;
 
 export async function readycheck(ctx: CommandContext<BotContext>) {
+  const pollOptionsPrompt = configStore.getPromptByType('POLL_OPTIONS');
+  const pollOptions = await runAgent(pollOptionsPrompt);
+
   const pollMessage = await ctx.api.sendPoll(
     ctx.chat.id,
     'Играем в дотан сегодня?',
-    ['Да (я уже смешарик)', 'Нет (слился)', 'Не знаю (я нерешительная мямля)'],
+    pollOptions.split('###'),
     {
       type: 'regular',
       is_anonymous: false,
@@ -70,10 +74,7 @@ export async function onReadyCheckAnswer(
     if (user) {
       activePoll.addAnswer({user, optionIds: option_ids});
 
-      if (
-        activePoll.answersCount === CHAT_MEMBERS.length &&
-        activePoll.chatId
-      ) {
+      if (activePoll.answersCount === 6 && activePoll.chatId) {
         const results = activePoll.answers.reduce<PollResult>((acc, curr) => {
           if (!acc[curr.optionIds[0]]) {
             acc[curr.optionIds[0]] = [];
