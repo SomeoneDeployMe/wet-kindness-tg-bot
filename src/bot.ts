@@ -67,7 +67,7 @@ bot.on('poll_answer', onReadyCheckAnswer);
 
 bot.on('message', async (ctx) => {
   if (ctx.message.text && mustBeSendToAI(ctx.message)) {
-    const response = await runAgent(ctx.message.text);
+    const response = await runAgent(buildPersonalizedMessage(ctx.message));
 
     await ctx.reply(response, {
       reply_to_message_id: ctx.message.message_id,
@@ -82,8 +82,14 @@ async function start() {
     allowed_updates: ['chat_member', 'message', 'poll_answer'],
   });
 
-  const response = await supabase.from('prompts').select('code,value');
-  const prompts = response.data?.map((p): [PromptType, string] => [
+  await initPrompts();
+}
+
+void start();
+
+async function initPrompts() {
+  const promptsResponse = await supabase.from('prompts').select('code,value');
+  const prompts = promptsResponse.data?.map((p): [PromptType, string] => [
     p.code as PromptType,
     p.value,
   ]);
@@ -93,9 +99,30 @@ async function start() {
   } else {
     throw new Error('No prompts found');
   }
-}
 
-void start();
+  const usersResponse = await supabase.from('users').select('tg_name, name');
+  const users = usersResponse.data?.map((u): [string, string] => [
+    u.tg_name,
+    u.name,
+  ]);
+
+  if (users) {
+    configStore.users = users;
+  } else {
+    throw new Error('No users found');
+  }
+
+  supabase
+    .channel('prompts_update')
+    .on(
+      'postgres_changes',
+      {event: 'UPDATE', schema: 'public', table: 'prompts'},
+      (payload) => {
+        configStore.updatePrompt(payload.new.code, payload.new.value);
+      }
+    )
+    .subscribe();
+}
 
 function mustBeSendToAI(message: Message) {
   const botName = process.env.BOT_NAME;
@@ -108,10 +135,22 @@ function mustBeSendToAI(message: Message) {
     message.text != null &&
     message.text.length < 500 &&
     (message?.text.toLowerCase().startsWith('свист') ||
-      message.text?.includes(botName) ||
+      message.text?.toLowerCase().startsWith(`@${botName}`.toLowerCase()) ||
       (message.reply_to_message?.from?.username === botName &&
         message.reply_to_message?.from?.is_bot))
   );
+}
+
+function buildPersonalizedMessage(message: Message): string {
+  if (message.from?.username) {
+    const userName = configStore.users.get(message.from.username);
+
+    if (userName) {
+      return `${userName}: ${message.text}`;
+    }
+  }
+
+  return message.text!;
 }
 
 function validateEnv() {
