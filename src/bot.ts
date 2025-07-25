@@ -124,21 +124,37 @@ async function initPrompts() {
     .subscribe();
 }
 
-function mustBeSendToAI(message: Message) {
+function mustBeSendToAI(message: Message): boolean {
   const botName = process.env.BOT_NAME;
 
   if (!botName) {
     return false;
   }
 
-  return !!(
-    message.text != null &&
-    message.text.length < 500 &&
-    (message?.text.toLowerCase().startsWith('свист') ||
-      message.text?.toLowerCase().startsWith(`@${botName}`.toLowerCase()) ||
-      (message.reply_to_message?.from?.username === botName &&
-        message.reply_to_message?.from?.is_bot))
-  );
+  if (!message.text || message.text.length >= 500) {
+    return false;
+  }
+
+  const messageTextLower = message.text.toLowerCase();
+  const botMentionLower = `@${botName}`.toLowerCase();
+
+  if (messageTextLower.startsWith('свист')) {
+    return true;
+  }
+
+  if (messageTextLower.startsWith(botMentionLower)) {
+    return true;
+  }
+
+  const replyToMessage = message.reply_to_message;
+  if (replyToMessage?.from) {
+    return (
+      replyToMessage.from.username === botName &&
+      replyToMessage.from.is_bot === true
+    );
+  }
+
+  return false;
 }
 
 function buildPersonalizedMessage(message: Message): string {
