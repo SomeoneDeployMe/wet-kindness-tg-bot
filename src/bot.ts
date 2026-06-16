@@ -1,4 +1,4 @@
-import {Bot, MemorySessionStorage} from 'grammy';
+import {Bot, GrammyError, HttpError, MemorySessionStorage} from 'grammy';
 import 'dotenv/config';
 import {type ChatMember} from 'grammy/types';
 import {chatMembers} from '@grammyjs/chat-members';
@@ -75,6 +75,19 @@ bot.on('message', async (ctx) => {
   }
 });
 
+bot.catch((err) => {
+  const updateId = err.ctx.update.update_id;
+  const e = err.error;
+
+  if (e instanceof GrammyError) {
+    console.error(`Error while handling update ${updateId}:`, e.description);
+  } else if (e instanceof HttpError) {
+    console.error(`Error while handling update ${updateId}:`, e);
+  } else {
+    console.error(`Error while handling update ${updateId}:`, e);
+  }
+});
+
 async function start() {
   validateEnv();
   await initConfig();
@@ -84,7 +97,7 @@ async function start() {
   });
 }
 
-void start();
+start().catch((err) => console.error('Failed to start bot:', err));
 
 async function initConfig() {
   await syncDb();

@@ -21,6 +21,14 @@ export function getMessages() {
   return memory.map((m) => m.message);
 }
 
+export function getMemoryLength() {
+  return memory.length;
+}
+
+export function truncateMemory(length: number) {
+  memory.length = length;
+}
+
 function resetInactivityTimer() {
   if (inactivityTimer) clearTimeout(inactivityTimer);
 

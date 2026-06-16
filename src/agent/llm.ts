@@ -30,5 +30,11 @@ export async function runModel({messages, tools}: RunModelParams) {
 
   console.log('Got LLM message');
 
-  return response.choices[0].message;
+  const message = response.choices[0]?.message;
+
+  if (!message) {
+    return null;
+  }
+
+  return message;
 }
