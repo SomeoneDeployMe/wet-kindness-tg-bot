@@ -1,9 +1,13 @@
 import OpenAI from 'openai';
+import {AgentContext} from '../context';
 import {getRandomChatMember} from './getRandomChatMember';
 import {getAllChatMembers} from './getAllChatMembers';
+import {createPoll, createPollParams} from './createPoll';
+import {closePoll, closePollParams} from './closePoll';
 
 export async function runner(
-  toolCall: OpenAI.Chat.Completions.ChatCompletionMessageToolCall
+  toolCall: OpenAI.Chat.Completions.ChatCompletionMessageToolCall,
+  context?: AgentContext
 ) {
   if (toolCall.type !== 'function') {
     return 'Unknown tool call';
@@ -14,6 +18,14 @@ export async function runner(
       return getRandomChatMember();
     case 'get_the_names_of_all_chat_member':
       return getAllChatMembers();
+    case 'create_poll': {
+      const args = createPollParams.parse(JSON.parse(toolCall.function.arguments));
+      return createPoll(args, context);
+    }
+    case 'close_poll': {
+      const args = closePollParams.parse(JSON.parse(toolCall.function.arguments));
+      return closePoll(args, context);
+    }
     default:
       return 'Unknown tool call';
   }

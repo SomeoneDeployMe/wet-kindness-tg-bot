@@ -6,16 +6,18 @@ import {
   dota,
   helpme,
   mid,
-  onReadyCheckAnswer,
   readycheck,
   slap,
   spit,
 } from './commands';
 import {BotContext} from './types';
 import {runAgent} from './agent/agent';
+import {agentContextFromChat} from './agent/context';
 import {Message} from '@grammyjs/types/message';
 import {configStore, PromptType} from './store';
 import {loadConfig, loadMembers, syncDb} from './db';
+import {onPollAnswer} from './polls/handler';
+import {initializePolls} from './polls/service';
 
 const storageAdapter = new MemorySessionStorage<ChatMember>();
 
@@ -32,7 +34,7 @@ bot.api.setMyCommands([
   {command: 'spit', description: 'Обидно харкнуть в @мимокрока'},
   {command: 'helpme', description: 'Ну и на что этот Generative AI способен?'},
 ]);
-
+ 
 bot.command('start', async (ctx) => {
   await ctx.reply('Вечер в хату');
 });
@@ -63,11 +65,14 @@ bot.hears(
   }
 );
 
-bot.on('poll_answer', onReadyCheckAnswer);
+bot.on('poll_answer', onPollAnswer);
 
 bot.on('message', async (ctx) => {
   if (ctx.message.text && mustBeSendToAI(ctx.message)) {
-    const response = await runAgent(buildPersonalizedMessage(ctx.message));
+    const response = await runAgent(
+      buildPersonalizedMessage(ctx.message),
+      agentContextFromChat(ctx.chat.id, ctx.api)
+    );
 
     await ctx.reply(response, {
       reply_to_message_id: ctx.message.message_id,
@@ -92,7 +97,7 @@ async function start() {
   validateEnv();
   await initConfig();
 
-  void bot.start({
+  await bot.start({
     allowed_updates: ['chat_member', 'message', 'poll_answer'],
   });
 }
@@ -122,6 +127,8 @@ async function initConfig() {
     active: row.active === 1,
     plays: row.plays === 1,
   }));
+
+  await initializePolls(bot.api);
 }
 
 function mustBeSendToAI(message: Message): boolean {

@@ -1,6 +1,7 @@
 import {CommandContext} from 'grammy';
 import {BotContext} from '../types';
 import {runAgent} from '../agent/agent';
+import {agentContextFromChat} from '../agent/context';
 
 export async function spit(ctx: CommandContext<BotContext>) {
   const targetUserMatchResult = /@\S+/.exec(ctx.match);
@@ -9,13 +10,15 @@ export async function spit(ctx: CommandContext<BotContext>) {
     const targetUserName = targetUserMatchResult[0];
 
     const response = await runAgent(
-      `Describe how @${ctx.from!.username} spits in ${targetUserName} face`
+      `Describe how @${ctx.from!.username} spits in ${targetUserName} face`,
+      agentContextFromChat(ctx.chat.id, ctx.api)
     );
 
     void ctx.reply(response);
   } else {
     const response = await runAgent(
-      `Describe how @${ctx.from!.username} accidentally spat in his own face`
+      `Describe how @${ctx.from!.username} accidentally spat in his own face`,
+      agentContextFromChat(ctx.chat.id, ctx.api)
     );
 
     void ctx.reply(response);

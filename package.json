@@ -2,7 +2,7 @@
   "name": "wet-kindness-tg-bot",
   "packageManager": "yarn@4.1.1",
   "scripts": {
-    "start:dev": "nodemon src/bot.ts",
+    "start:dev": "nodemon --watch src --ext ts --exec ts-node src/bot.ts",
     "start:prod": "yarn run tsc && yarn run pm2 start --name wetkindnessbot dist/bot.js",
     "stop:prod": "yarn run pm2 stop wetkindnessbot"
   },

@@ -1,6 +1,7 @@
 import {CommandContext} from 'grammy';
 import {BotContext} from '../types';
 import {runAgent} from '../agent/agent';
+import {agentContextFromChat} from '../agent/context';
 
 const defaultMinutesDelay = 0;
 let scheduledReplyTimeout: NodeJS.Timeout | null = null;
@@ -11,7 +12,10 @@ export async function dota(ctx: CommandContext<BotContext>) {
   const minutes = matches !== null ? Number(matches[0]) : defaultMinutesDelay;
 
   if (minutes === 0) {
-    const response = await runAgent(`Call all chat members to play Dota`);
+    const response = await runAgent(
+      `Call all chat members to play Dota`,
+      agentContextFromChat(ctx.chat.id, ctx.api)
+    );
 
     await ctx.reply(response);
 
@@ -30,7 +34,8 @@ export async function dota(ctx: CommandContext<BotContext>) {
 
   if (scheduledReplyTimeout) {
     const response = await runAgent(
-      `Gather all chat members to play Dota after ${minutes}`
+      `Gather all chat members to play Dota after ${minutes}`,
+      agentContextFromChat(ctx.chat.id, ctx.api)
     );
 
     await ctx.reply(response);
@@ -38,7 +43,8 @@ export async function dota(ctx: CommandContext<BotContext>) {
     resetScheduledTimer();
   } else {
     const response = await runAgent(
-      `Announce to all chat members that we are going to play Dota in ${minutes} minutes`
+      `Announce to all chat members that we are going to play Dota in ${minutes} minutes`,
+      agentContextFromChat(ctx.chat.id, ctx.api)
     );
 
     await ctx.reply(response);

@@ -1,9 +1,10 @@
 import {CommandContext} from 'grammy';
-import {BotContext} from '../types';
 import {Filter} from 'grammy/out/filter';
+import {BotContext} from '../types';
 import {User} from 'grammy/types';
 import {configStore} from '../store';
 import {runAgent} from '../agent/agent';
+import {isActiveGenericPoll} from '../polls/service';
 
 type Answer = {
   user: User;
@@ -85,6 +86,10 @@ export async function readycheck(ctx: CommandContext<BotContext>) {
 export async function onReadyCheckAnswer(
   ctx: Filter<BotContext, 'poll_answer'>
 ) {
+  if (await isActiveGenericPoll(ctx.update.poll_answer.poll_id)) {
+    return;
+  }
+
   if (activePoll && activePoll.pollId === ctx.update.poll_answer.poll_id) {
     const {user, option_ids} = ctx.update.poll_answer;
 

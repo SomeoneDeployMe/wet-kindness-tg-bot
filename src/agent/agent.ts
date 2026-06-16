@@ -8,7 +8,10 @@ import {runModel} from './llm';
 import {runner} from './tools/runner';
 import {randomChatMemberToolDefinition} from './tools/getRandomChatMember';
 import {allChatMembersToolDefinition} from './tools/getAllChatMembers';
+import {createPollToolDefinition} from './tools/createPoll';
+import {closePollToolDefinition} from './tools/closePoll';
 import {AGENT_FALLBACK_MESSAGE} from './fallback';
+import {AgentContext} from './context';
 
 const MAX_AGENT_ITERATIONS = 10;
 
@@ -17,7 +20,7 @@ function fail(snapshotLength: number): string {
   return AGENT_FALLBACK_MESSAGE;
 }
 
-export async function runAgent(message: string) {
+export async function runAgent(message: string, context?: AgentContext) {
   const snapshotLength = getMemoryLength();
   addMessage({role: 'user', content: message});
 
@@ -27,7 +30,12 @@ export async function runAgent(message: string) {
 
       const response = await runModel({
         messages,
-        tools: [randomChatMemberToolDefinition, allChatMembersToolDefinition],
+        tools: [
+          randomChatMemberToolDefinition,
+          allChatMembersToolDefinition,
+          createPollToolDefinition,
+          closePollToolDefinition,
+        ],
       });
 
       if (!response) {
@@ -41,7 +49,7 @@ export async function runAgent(message: string) {
 
         const toolCall = response.tool_calls[0];
 
-        const toolResponse = await runner(toolCall);
+        const toolResponse = await runner(toolCall, context);
 
         addMessage({
           role: 'tool',
