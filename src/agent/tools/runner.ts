@@ -5,6 +5,10 @@ import {getAllChatMembers} from './getAllChatMembers';
 export async function runner(
   toolCall: OpenAI.Chat.Completions.ChatCompletionMessageToolCall
 ) {
+  if (toolCall.type !== 'function') {
+    return 'Unknown tool call';
+  }
+
   switch (toolCall.function.name) {
     case 'get_random_chat_member':
       return getRandomChatMember();
