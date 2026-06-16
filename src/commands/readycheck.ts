@@ -1,8 +1,10 @@
 import {CommandContext} from 'grammy';
-import {BotContext} from '../types';
 import {Filter} from 'grammy/out/filter';
+import {BotContext} from '../types';
 import {User} from 'grammy/types';
-import {CHAT_MEMBERS} from '../consts';
+import {configStore} from '../store';
+import {runAgent} from '../agent/agent';
+import {isActiveGenericPoll} from '../polls/service';
 
 type Answer = {
   user: User;
@@ -34,10 +36,6 @@ class PollStorage {
     return this.#answers;
   }
 
-  get answersCount() {
-    return this.#answers.length;
-  }
-
   addAnswer(answer: Answer) {
     this.#answers.push(answer);
   }
@@ -45,11 +43,35 @@ class PollStorage {
 
 let activePoll: PollStorage | null;
 
+function haveAllPlayingMembersAnswered(answers: Answer[]): boolean {
+  const playingTgNames = new Set(
+    configStore.getPlayingMembers().map((member) => member.tgName)
+  );
+
+  if (playingTgNames.size === 0) {
+    return false;
+  }
+
+  const answeredPlaying = new Set(
+    answers
+      .map((answer) => answer.user.username)
+      .filter(
+        (username): username is string =>
+          username != null && playingTgNames.has(username)
+      )
+  );
+
+  return answeredPlaying.size === playingTgNames.size;
+}
+
 export async function readycheck(ctx: CommandContext<BotContext>) {
+  const pollOptionsPrompt = configStore.getPromptByType('POLL_OPTIONS');
+  const pollOptions = await runAgent(pollOptionsPrompt);
+
   const pollMessage = await ctx.api.sendPoll(
     ctx.chat.id,
     'Играем в дотан сегодня?',
-    ['Да (я уже смешарик)', 'Нет (слился)', 'Не знаю (я нерешительная мямля)'],
+    pollOptions.split('###'),
     {
       type: 'regular',
       is_anonymous: false,
@@ -64,16 +86,17 @@ export async function readycheck(ctx: CommandContext<BotContext>) {
 export async function onReadyCheckAnswer(
   ctx: Filter<BotContext, 'poll_answer'>
 ) {
+  if (await isActiveGenericPoll(ctx.update.poll_answer.poll_id)) {
+    return;
+  }
+
   if (activePoll && activePoll.pollId === ctx.update.poll_answer.poll_id) {
     const {user, option_ids} = ctx.update.poll_answer;
 
     if (user) {
       activePoll.addAnswer({user, optionIds: option_ids});
 
-      if (
-        activePoll.answersCount === CHAT_MEMBERS.length &&
-        activePoll.chatId
-      ) {
+      if (haveAllPlayingMembersAnswered(activePoll.answers) && activePoll.chatId) {
         const results = activePoll.answers.reduce<PollResult>((acc, curr) => {
           if (!acc[curr.optionIds[0]]) {
             acc[curr.optionIds[0]] = [];

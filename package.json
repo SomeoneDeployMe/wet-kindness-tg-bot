@@ -2,7 +2,7 @@
   "name": "wet-kindness-tg-bot",
   "packageManager": "yarn@4.1.1",
   "scripts": {
-    "start:dev": "nodemon src/bot.ts",
+    "start:dev": "nodemon --watch src --ext ts --exec ts-node src/bot.ts",
     "start:prod": "yarn run tsc && yarn run pm2 start --name wetkindnessbot dist/bot.js",
     "stop:prod": "yarn run pm2 stop wetkindnessbot"
   },
@@ -15,9 +15,13 @@
     "typescript": "^5.4.3"
   },
   "dependencies": {
-    "@grammyjs/chat-members": "^1.1.0",
+    "@grammyjs/chat-members": "^1.2.0",
+    "@libsql/client": "^0.15.15",
     "az": "^0.2.3",
     "dotenv": "^16.4.5",
-    "grammy": "^1.21.2"
+    "grammy": "^1.44.0",
+    "lowdb": "^7.0.1",
+    "openai": "^6.42.0",
+    "zod": "^3.25.0"
   }
 }

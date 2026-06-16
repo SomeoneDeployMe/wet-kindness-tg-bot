@@ -1,13 +1,8 @@
-import {CHAT_MEMBERS} from '../consts';
 import {CommandContext} from 'grammy';
 import {BotContext} from '../types';
+import {runAgent} from '../agent/agent';
+import {agentContextFromChat} from '../agent/context';
 
-const pluralRules = new Intl.PluralRules('ru-RU');
-const minuteSuffixes = new Map([
-  ['one', 'минуту'],
-  ['few', 'минуты'],
-  ['many', 'минут'],
-]);
 const defaultMinutesDelay = 0;
 let scheduledReplyTimeout: NodeJS.Timeout | null = null;
 
@@ -17,9 +12,12 @@ export async function dota(ctx: CommandContext<BotContext>) {
   const minutes = matches !== null ? Number(matches[0]) : defaultMinutesDelay;
 
   if (minutes === 0) {
-    await ctx.reply(
-      `Внезапный экстракшон мужиков в дотан ${CHAT_MEMBERS.join(' ')}`
+    const response = await runAgent(
+      `Call all chat members to play Dota`,
+      agentContextFromChat(ctx.chat.id, ctx.api)
     );
+
+    await ctx.reply(response);
 
     resetScheduledTimer();
 
@@ -35,20 +33,26 @@ export async function dota(ctx: CommandContext<BotContext>) {
   }
 
   if (scheduledReplyTimeout) {
-    await ctx.reply(
-      `"Галя! У нас отмена!" Теперь собираемся через ${minutes} ${getMinuteSuffix(minutes)} ${CHAT_MEMBERS.join(' ')}`
+    const response = await runAgent(
+      `Gather all chat members to play Dota after ${minutes}`,
+      agentContextFromChat(ctx.chat.id, ctx.api)
     );
+
+    await ctx.reply(response);
 
     resetScheduledTimer();
   } else {
-    await ctx.reply(
-      `${minutes} ${getMinuteSuffix(minutes)} на припудриться и погнали ${CHAT_MEMBERS.join(' ')}`
+    const response = await runAgent(
+      `Announce to all chat members that we are going to play Dota in ${minutes} minutes`,
+      agentContextFromChat(ctx.chat.id, ctx.api)
     );
+
+    await ctx.reply(response);
   }
 
   scheduledReplyTimeout = setTimeout(
     () => {
-      ctx.reply(`Ну и где все? ${CHAT_MEMBERS.join(' ')}`);
+      ctx.reply(`Ну и где все?`);
 
       resetScheduledTimer();
     },
@@ -56,10 +60,6 @@ export async function dota(ctx: CommandContext<BotContext>) {
   );
 
   return;
-}
-
-function getMinuteSuffix(minutes: number) {
-  return minuteSuffixes.get(pluralRules.select(minutes)) ?? 'минут';
 }
 
 function resetScheduledTimer() {

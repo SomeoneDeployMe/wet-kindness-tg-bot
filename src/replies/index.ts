@@ -1,0 +1,1 @@
+export {swearBack} from './swearBack';

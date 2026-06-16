@@ -1,7 +1,7 @@
 import {CommandContext} from 'grammy';
-import {MessageEntity} from '@grammyjs/types/message';
-import {buildHTMLMentionByUserId} from '../utils';
 import {BotContext} from '../types';
+import {runAgent} from '../agent/agent';
+import {agentContextFromChat} from '../agent/context';
 
 export async function slap(ctx: CommandContext<BotContext>) {
   const result = /@\S+/.exec(ctx.match);
@@ -9,26 +9,18 @@ export async function slap(ctx: CommandContext<BotContext>) {
   if (result !== null) {
     const targetUserName = result[0];
 
-    ctx.reply(
-      `${targetUserName} получает смачного леща 👋 от @${ctx.from!.username}`
+    const response = await runAgent(
+      `Describe how ${targetUserName} gets a juicy slap in the face from @${ctx.from!.username}`,
+      agentContextFromChat(ctx.chat.id, ctx.api)
     );
+
+    void ctx.reply(response);
   } else {
-    const ent = ctx.message!.entities.find(
-      (entity): entity is MessageEntity.TextMentionMessageEntity =>
-        entity.type === 'text_mention'
+    const response = await runAgent(
+      `Describe how @${ctx.from!.username} accidentally hits himself in the face`,
+      agentContextFromChat(ctx.chat.id, ctx.api)
     );
 
-    if (ent) {
-      const {id, first_name} = ent.user;
-
-      ctx.reply(
-        `${buildHTMLMentionByUserId(id, first_name)} получает смачного леща 👋 от @${ctx.from!.username}`,
-        {parse_mode: 'HTML'}
-      );
-    } else {
-      ctx.reply(
-        `Трясясь и потея в попытках найти соперника, @${ctx.from!.username} обмякает не преуспев 🤡`
-      );
-    }
+    void ctx.reply(response);
   }
 }
