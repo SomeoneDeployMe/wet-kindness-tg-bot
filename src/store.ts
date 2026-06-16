@@ -1,8 +1,17 @@
 export type PromptType = 'SYSTEM' | 'MID' | 'POLL_OPTIONS';
 
+export type Member = {
+  id: number;
+  tgName: string;
+  name: string;
+  telegramUserId: number | null;
+  active: boolean;
+  plays: boolean;
+};
+
 class ConfigStoreImpl {
   #prompts: Map<PromptType, string> = new Map();
-  #users: Map<string, string> = new Map();
+  #members: Member[] = [];
 
   get prompts() {
     return this.#prompts;
@@ -16,12 +25,20 @@ class ConfigStoreImpl {
     }
   }
 
-  get users(): Map<string, string> {
-    return this.#users;
+  get members(): Member[] {
+    return this.#members;
   }
 
-  set users(users: [string, string][]) {
-    this.#users = new Map<string, string>(users);
+  set members(members: Member[]) {
+    this.#members = members;
+  }
+
+  getPlayingMembers() {
+    return this.#members.filter((member) => member.plays);
+  }
+
+  getMemberByTgName(tgName: string) {
+    return this.#members.find((member) => member.tgName === tgName);
   }
 
   updatePrompt(type: PromptType, newValue: string) {

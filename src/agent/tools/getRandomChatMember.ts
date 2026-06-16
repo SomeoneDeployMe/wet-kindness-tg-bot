@@ -1,11 +1,16 @@
 import {z} from 'zod';
-import {supabase} from '../../supabase';
+import {configStore} from '../../store';
 
 export async function getRandomChatMember() {
-  const response = await supabase.from('users').select('tg_name');
-  const names = response.data?.map((user) => user.tg_name) ?? [];
+  const playingMembers = configStore.getPlayingMembers();
+  const member =
+    playingMembers[Math.floor(Math.random() * playingMembers.length)];
 
-  return `@${names[Math.floor(Math.random() * names.length)]}`;
+  if (!member) {
+    return 'No playing members found';
+  }
+
+  return `@${member.tgName}`;
 }
 
 export const randomChatMemberToolDefinition = {

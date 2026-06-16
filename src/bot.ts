@@ -15,7 +15,7 @@ import {BotContext} from './types';
 import {runAgent} from './agent/agent';
 import {Message} from '@grammyjs/types/message';
 import {configStore, PromptType} from './store';
-import {supabase} from './supabase';
+import {loadConfig, loadMembers, syncDb} from './db';
 
 const storageAdapter = new MemorySessionStorage<ChatMember>();
 
@@ -77,51 +77,38 @@ bot.on('message', async (ctx) => {
 
 async function start() {
   validateEnv();
+  await initConfig();
 
   void bot.start({
     allowed_updates: ['chat_member', 'message', 'poll_answer'],
   });
-
-  await initPrompts();
 }
 
 void start();
 
-async function initPrompts() {
-  const promptsResponse = await supabase.from('prompts').select('code,value');
-  const prompts = promptsResponse.data?.map((p): [PromptType, string] => [
-    p.code as PromptType,
-    p.value,
-  ]);
+async function initConfig() {
+  await syncDb();
 
-  if (prompts) {
-    configStore.prompts = prompts;
-  } else {
-    throw new Error('No prompts found');
-  }
-
-  const usersResponse = await supabase.from('users').select('tg_name, name');
-  const users = usersResponse.data?.map((u): [string, string] => [
-    u.tg_name,
-    u.name,
-  ]);
-
-  if (users) {
-    configStore.users = users;
-  } else {
-    throw new Error('No users found');
-  }
-
-  supabase
-    .channel('prompts_update')
-    .on(
-      'postgres_changes',
-      {event: 'UPDATE', schema: 'public', table: 'prompts'},
-      (payload) => {
-        configStore.updatePrompt(payload.new.code, payload.new.value);
-      }
+  const configRows = await loadConfig();
+  const prompts = configRows
+    .filter((row): row is {code: PromptType; value: string} =>
+      (['SYSTEM', 'MID', 'POLL_OPTIONS'] as const).includes(
+        row.code as PromptType
+      )
     )
-    .subscribe();
+    .map((row): [PromptType, string] => [row.code, row.value]);
+
+  configStore.prompts = prompts;
+
+  const memberRows = await loadMembers();
+  configStore.members = memberRows.map((row) => ({
+    id: row.id,
+    tgName: row.tg_name,
+    name: row.name,
+    telegramUserId: row.telegram_user_id,
+    active: row.active === 1,
+    plays: row.plays === 1,
+  }));
 }
 
 function mustBeSendToAI(message: Message): boolean {
@@ -159,10 +146,10 @@ function mustBeSendToAI(message: Message): boolean {
 
 function buildPersonalizedMessage(message: Message): string {
   if (message.from?.username) {
-    const userName = configStore.users.get(message.from.username);
+    const member = configStore.getMemberByTgName(message.from.username);
 
-    if (userName) {
-      return `${userName}: ${message.text}`;
+    if (member) {
+      return `${member.name}: ${message.text}`;
     }
   }
 
@@ -174,8 +161,8 @@ function validateEnv() {
     'BOT_API_TOKEN',
     'OPENAI_URL',
     'OPENAI_API_KEY',
-    'SUPABASE_URL',
-    'SUPABASE_KEY',
+    'TURSO_DATABASE_URL',
+    'TURSO_AUTH_TOKEN',
     'MODEL',
     'BOT_NAME',
   ].forEach((name) => {

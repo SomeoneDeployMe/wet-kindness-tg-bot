@@ -1,11 +1,11 @@
 import {z} from 'zod';
-import {supabase} from '../../supabase';
+import {configStore} from '../../store';
 
 export async function getAllChatMembers() {
-  const response = await supabase.from('users').select('tg_name');
-  const names = response.data?.map((user) => user.tg_name) ?? [];
-
-  return names.map((name) => `@${name}`).join(', ');
+  return configStore
+    .getPlayingMembers()
+    .map((member) => `@${member.tgName}`)
+    .join(', ');
 }
 
 export const allChatMembersToolDefinition = {
