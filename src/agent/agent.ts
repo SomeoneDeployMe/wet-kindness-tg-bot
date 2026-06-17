@@ -15,6 +15,13 @@ import {AgentContext} from './context';
 
 const MAX_AGENT_ITERATIONS = 10;
 
+const AGENT_TOOLS = [
+  randomChatMemberToolDefinition,
+  allChatMembersToolDefinition,
+  createPollToolDefinition,
+  closePollToolDefinition,
+];
+
 function fail(snapshotLength: number): string {
   truncateMemory(snapshotLength);
   return AGENT_FALLBACK_MESSAGE;
@@ -30,12 +37,7 @@ export async function runAgent(message: string, context?: AgentContext) {
 
       const response = await runModel({
         messages,
-        tools: [
-          randomChatMemberToolDefinition,
-          allChatMembersToolDefinition,
-          createPollToolDefinition,
-          closePollToolDefinition,
-        ],
+        tools: AGENT_TOOLS,
       });
 
       if (!response) {

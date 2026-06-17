@@ -1,6 +1,6 @@
+import './loadEnv';
 import {Bot, GrammyError, HttpError, MemorySessionStorage} from 'grammy';
-import 'dotenv/config';
-import {type ChatMember} from 'grammy/types';
+import {type ChatMember, type User} from 'grammy/types';
 import {chatMembers} from '@grammyjs/chat-members';
 import {
   dota,
@@ -18,12 +18,15 @@ import {configStore, PromptType} from './store';
 import {loadConfig, loadMembers, syncDb} from './db';
 import {onPollAnswer} from './polls/handler';
 import {initializePolls} from './polls/service';
+import {registerInitiative} from './initiative';
 
 const storageAdapter = new MemorySessionStorage<ChatMember>();
 
 export const bot = new Bot<BotContext>(process.env.BOT_API_TOKEN!);
 
 bot.use(chatMembers(storageAdapter));
+
+registerInitiative(bot);
 
 bot.api.setMyCommands([
   {command: 'start', description: 'Выразить почтение'},
@@ -68,7 +71,7 @@ bot.hears(
 bot.on('poll_answer', onPollAnswer);
 
 bot.on('message', async (ctx) => {
-  if (ctx.message.text && mustBeSendToAI(ctx.message)) {
+  if (ctx.message.text && mustBeSendToAI(ctx.message, ctx.me)) {
     const response = await runAgent(
       buildPersonalizedMessage(ctx.message),
       agentContextFromChat(ctx.chat.id, ctx.api)
@@ -108,15 +111,27 @@ async function initConfig() {
   await syncDb();
 
   const configRows = await loadConfig();
+  const requiredPrompts = [
+    'SYSTEM',
+    'MID',
+    'POLL_OPTIONS',
+    'ICEBREAKER',
+  ] as const;
   const prompts = configRows
     .filter((row): row is {code: PromptType; value: string} =>
-      (['SYSTEM', 'MID', 'POLL_OPTIONS'] as const).includes(
-        row.code as PromptType
-      )
+      requiredPrompts.includes(row.code as PromptType)
     )
     .map((row): [PromptType, string] => [row.code, row.value]);
 
   configStore.prompts = prompts;
+
+  const loadedCodes = new Set(prompts.map(([code]) => code));
+
+  for (const code of requiredPrompts) {
+    if (!loadedCodes.has(code)) {
+      throw new Error(`Missing required config prompt: ${code}`);
+    }
+  }
 
   const memberRows = await loadMembers();
   configStore.members = memberRows.map((row) => ({
@@ -131,33 +146,31 @@ async function initConfig() {
   await initializePolls(bot.api);
 }
 
-function mustBeSendToAI(message: Message): boolean {
-  const botName = process.env.BOT_NAME;
-
-  if (!botName) {
-    return false;
-  }
-
+function mustBeSendToAI(message: Message, botUser: User): boolean {
   if (!message.text || message.text.length >= 500) {
     return false;
   }
 
   const messageTextLower = message.text.toLowerCase();
-  const botMentionLower = `@${botName}`.toLowerCase();
 
   if (messageTextLower.startsWith('свист')) {
     return true;
   }
 
-  if (messageTextLower.startsWith(botMentionLower)) {
-    return true;
+  if (botUser.username) {
+    const botMentionLower = `@${botUser.username}`.toLowerCase();
+
+    if (messageTextLower.startsWith(botMentionLower)) {
+      return true;
+    }
   }
 
   const replyToMessage = message.reply_to_message;
   if (replyToMessage?.from) {
     return (
-      replyToMessage.from.username === botName &&
-      replyToMessage.from.is_bot === true
+      replyToMessage.from.id === botUser.id ||
+      (botUser.username != null &&
+        replyToMessage.from.username === botUser.username)
     );
   }
 

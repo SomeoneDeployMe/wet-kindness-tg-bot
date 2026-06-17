@@ -1,4 +1,4 @@
-export type PromptType = 'SYSTEM' | 'MID' | 'POLL_OPTIONS';
+export type PromptType = 'SYSTEM' | 'MID' | 'POLL_OPTIONS' | 'ICEBREAKER';
 
 export type Member = {
   id: number;

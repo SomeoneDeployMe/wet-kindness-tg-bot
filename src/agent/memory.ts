@@ -8,7 +8,7 @@ export function addMessage(message: AIMessage) {
 
   memory.push({message, timestamp: now});
 
-  if (memory.length > 50) {
+  if (memory.length > 200) {
     memory.shift();
   }
 

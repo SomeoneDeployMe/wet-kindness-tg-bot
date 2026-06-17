@@ -1,0 +1,8 @@
+export const SILENCE_MIN_HOURS = 6;
+export const SILENCE_MAX_HOURS = 12;
+
+export const ICEBREAKER_COOLDOWN_MIN_HOURS = 8;
+export const ICEBREAKER_COOLDOWN_MAX_HOURS = 12;
+
+export const ICEBREAKER_WINDOW_START_HOUR = 9;
+export const ICEBREAKER_WINDOW_END_HOUR = 23;
