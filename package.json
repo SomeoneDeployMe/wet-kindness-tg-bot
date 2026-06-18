@@ -17,6 +17,7 @@
   "dependencies": {
     "@grammyjs/chat-members": "^1.2.0",
     "@libsql/client": "^0.15.15",
+    "@tavily/core": "^0.7.6",
     "az": "^0.2.3",
     "dotenv": "^16.4.5",
     "grammy": "^1.44.0",

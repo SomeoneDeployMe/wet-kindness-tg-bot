@@ -4,6 +4,7 @@ import {getRandomChatMember} from './getRandomChatMember';
 import {getAllChatMembers} from './getAllChatMembers';
 import {createPoll, createPollParams} from './createPoll';
 import {closePoll, closePollParams} from './closePoll';
+import {webSearch, webSearchParams} from './webSearch';
 
 export async function runner(
   toolCall: OpenAI.Chat.Completions.ChatCompletionMessageToolCall,
@@ -25,6 +26,10 @@ export async function runner(
     case 'close_poll': {
       const args = closePollParams.parse(JSON.parse(toolCall.function.arguments));
       return closePoll(args, context);
+    }
+    case 'web_search': {
+      const args = webSearchParams.parse(JSON.parse(toolCall.function.arguments));
+      return webSearch(args);
     }
     default:
       return 'Unknown tool call';

@@ -198,6 +198,7 @@ function validateEnv() {
     'TURSO_AUTH_TOKEN',
     'MODEL',
     'BOT_NAME',
+    'TAVILY_API_KEY',
   ].forEach((name) => {
     if (process.env[name] == null || process.env[name] === '') {
       throw new Error(`${name} value must be provided`);

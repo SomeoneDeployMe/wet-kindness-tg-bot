@@ -10,16 +10,21 @@ import {randomChatMemberToolDefinition} from './tools/getRandomChatMember';
 import {allChatMembersToolDefinition} from './tools/getAllChatMembers';
 import {createPollToolDefinition} from './tools/createPoll';
 import {closePollToolDefinition} from './tools/closePoll';
+import {webSearchToolDefinition} from './tools/webSearch';
 import {AGENT_FALLBACK_MESSAGE} from './fallback';
 import {AgentContext} from './context';
 
 const MAX_AGENT_ITERATIONS = 10;
+const MAX_WEB_SEARCH_CALLS_PER_RUN = 2;
+const SEARCH_LIMIT_REACHED_MESSAGE =
+  'SEARCH_LIMIT_REACHED: Maximum 2 web searches per message. Answer from existing context or say you cannot search further.';
 
 const AGENT_TOOLS = [
   randomChatMemberToolDefinition,
   allChatMembersToolDefinition,
   createPollToolDefinition,
   closePollToolDefinition,
+  webSearchToolDefinition,
 ];
 
 function fail(snapshotLength: number): string {
@@ -29,6 +34,8 @@ function fail(snapshotLength: number): string {
 
 export async function runAgent(message: string, context?: AgentContext) {
   const snapshotLength = getMemoryLength();
+  let searchCallsThisRun = 0;
+
   addMessage({role: 'user', content: message});
 
   try {
@@ -51,7 +58,21 @@ export async function runAgent(message: string, context?: AgentContext) {
 
         const toolCall = response.tool_calls[0];
 
-        const toolResponse = await runner(toolCall, context);
+        let toolResponse: string;
+
+        if (
+          toolCall.type === 'function' &&
+          toolCall.function.name === 'web_search'
+        ) {
+          if (searchCallsThisRun >= MAX_WEB_SEARCH_CALLS_PER_RUN) {
+            toolResponse = SEARCH_LIMIT_REACHED_MESSAGE;
+          } else {
+            searchCallsThisRun++;
+            toolResponse = await runner(toolCall, context);
+          }
+        } else {
+          toolResponse = await runner(toolCall, context);
+        }
 
         addMessage({
           role: 'tool',
