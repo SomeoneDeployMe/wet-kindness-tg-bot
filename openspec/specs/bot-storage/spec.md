@@ -60,7 +60,9 @@ The bot SHALL hydrate the in-memory `configStore` from Turso at startup. Runtime
 #### Scenario: System prompt for LLM
 
 - **WHEN** the agent calls the language model
-- **THEN** it SHALL use the `SYSTEM` config value from `configStore`
+- **THEN** it SHALL use the `SYSTEM` config value from `configStore` as the static base system instructions
+- **AND** SHALL prepend or combine a runtime-generated current calendar date (Europe/Moscow) into the system message sent to the model
+- **AND** SHALL compute that date at call time, not store it in Turso
 
 #### Scenario: Message personalization
 

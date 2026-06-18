@@ -2,6 +2,7 @@ import {AIMessage} from './types';
 import {openai} from './ai';
 import {zodFunction} from 'openai/helpers/zod';
 import {configStore} from '../store';
+import {buildSystemPrompt} from './buildSystemPrompt';
 
 type RunModelParams = {
   messages: AIMessage[];
@@ -9,7 +10,7 @@ type RunModelParams = {
 };
 
 export async function runModel({messages, tools}: RunModelParams) {
-  const systemPrompt = configStore.getPromptByType('SYSTEM')!;
+  const systemPrompt = buildSystemPrompt(configStore.getPromptByType('SYSTEM')!);
 
   console.log('Call LLM');
 
