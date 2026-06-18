@@ -14,6 +14,30 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@gramio/format@npm:^0.9.0":
+  version: 0.9.0
+  resolution: "@gramio/format@npm:0.9.0"
+  dependencies:
+    "@gramio/types": "npm:^10.1.0"
+  peerDependencies:
+    marked: ^15.0.11
+    node-html-parser: ">=6.0.0"
+  peerDependenciesMeta:
+    marked:
+      optional: true
+    node-html-parser:
+      optional: true
+  checksum: 10c0/0b8350e14460b68a169c0eadf173224016ec35853b164af8e104b7c268c6bfac9c086ebc1349357fbb8192c5acd54371c647989a754801f902306018bca68ac8
+  languageName: node
+  linkType: hard
+
+"@gramio/types@npm:^10.1.0":
+  version: 10.1.0
+  resolution: "@gramio/types@npm:10.1.0"
+  checksum: 10c0/3ca39eddbe14da8c92aba5c4f36a5508462a3c18bb4cbcdcdf7f29a38b59e13b481c36551e8f56d5ab31f45cceba9c56561e5ba33116e7bdc91710ab70ce1528
+  languageName: node
+  linkType: hard
+
 "@grammyjs/chat-members@npm:^1.2.0":
   version: 1.2.0
   resolution: "@grammyjs/chat-members@npm:1.2.0"
@@ -1864,6 +1888,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"marked@npm:^15.0.11":
+  version: 15.0.12
+  resolution: "marked@npm:15.0.12"
+  bin:
+    marked: bin/marked.js
+  checksum: 10c0/e09da211544b787ecfb25fed07af206060bf7cd6d9de6cb123f15c496a57f83b7aabea93340aaa94dae9c94e097ae129377cad6310abc16009590972e85f4212
+  languageName: node
+  linkType: hard
+
 "math-intrinsics@npm:^1.1.0":
   version: 1.1.0
   resolution: "math-intrinsics@npm:1.1.0"
@@ -3008,6 +3041,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "wet-kindness-tg-bot@workspace:."
   dependencies:
+    "@gramio/format": "npm:^0.9.0"
     "@grammyjs/chat-members": "npm:^1.2.0"
     "@libsql/client": "npm:^0.15.15"
     "@tavily/core": "npm:^0.7.6"
@@ -3016,6 +3050,7 @@ __metadata:
     dotenv: "npm:^16.4.5"
     grammy: "npm:^1.44.0"
     lowdb: "npm:^7.0.1"
+    marked: "npm:^15.0.11"
     nodemon: "npm:^3.1.0"
     openai: "npm:^6.42.0"
     pm2: "npm:^5.3.1"

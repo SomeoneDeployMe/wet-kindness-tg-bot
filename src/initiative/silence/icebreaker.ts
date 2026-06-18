@@ -8,6 +8,7 @@ import {
   ICEBREAKER_WINDOW_START_HOUR,
 } from './constants';
 import {recordActivity} from './tracker';
+import {sendAgentMessage} from '../../utils';
 
 export async function sendIcebreaker(chatId: number, api: Api) {
   if (
@@ -24,6 +25,6 @@ export async function sendIcebreaker(chatId: number, api: Api) {
   const prompt = configStore.getPromptByType('ICEBREAKER');
   const text = await runAgent(prompt, agentContextFromChat(chatId, api));
 
-  await api.sendMessage(chatId, text);
+  await sendAgentMessage(api, chatId, text);
   recordActivity(chatId, api, {afterIcebreaker: true});
 }

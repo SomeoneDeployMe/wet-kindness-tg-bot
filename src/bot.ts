@@ -19,6 +19,7 @@ import {loadConfig, loadMembers, syncDb} from './db';
 import {onPollAnswer} from './polls/handler';
 import {initializePolls} from './polls/service';
 import {registerInitiative} from './initiative';
+import {sendAgentMessage} from './utils';
 
 const storageAdapter = new MemorySessionStorage<ChatMember>();
 
@@ -77,7 +78,7 @@ bot.on('message', async (ctx) => {
       agentContextFromChat(ctx.chat.id, ctx.api)
     );
 
-    await ctx.reply(response, {
+    await sendAgentMessage(ctx.api, ctx.chat.id, response, {
       reply_to_message_id: ctx.message.message_id,
     });
   }
